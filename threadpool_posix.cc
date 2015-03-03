@@ -1,3 +1,11 @@
+/*
+ *
+ *    Boss/worker Model with a C++ Thread pool based on POSIX thread
+ *
+ *    Written by EuiJong Hwang
+ *
+ */
+
 #include <pthread.h>
 #include <iostream>
 #include <cstdlib>
