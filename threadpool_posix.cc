@@ -17,8 +17,6 @@
 #define MAX_QUEUE_SIZE	20
 #define MAX_POOL_SIZE	10
 
-using namespace std;
-
 class TaskQueue
 {
 	public:
@@ -28,12 +26,12 @@ class TaskQueue
 		static void* StartThread(void* object); // use in thread
 		void GetPacketData(); // use in StartThread function
 		void ListeningTaskQueue();
-		void Lock(string msg);
-		void Unlock(string msg);
-		void Wait(string msg);
-		void Signal(string msg);
+		void Lock(std::string msg);
+		void Unlock(std::string msg);
+		void Wait(std::string msg);
+		void Signal(std::string msg);
 	private:
-		list<int> task_queue;
+		std::list<int> task_queue;
 		pthread_mutex_t mutex;
 		pthread_cond_t cond;
 };
@@ -46,7 +44,7 @@ class ThreadPool
 		void Create(TaskQueue* taskQueue);
 		void Join();
 	private:
-		vector<pthread_t*> worker_threads;
+		std::vector<pthread_t*> worker_threads;
 };
 
 bool sig_int = false; // SIGINT FLAG
@@ -85,7 +83,7 @@ TaskQueue::~TaskQueue() {
 /* Pop Task */
 void TaskQueue::PopTask() {
 
-	cout << "task_queue.front(): " << task_queue.front() << endl;
+	std::cout << "task_queue.front(): " << task_queue.front() << std::endl;
 	task_queue.pop_front();
 }
 
@@ -99,7 +97,7 @@ void* TaskQueue::StartThread(void* object) {
 /* Get Packet Data */
 void TaskQueue::GetPacketData() {
 
-	string msg = "Worker";
+	std::string msg = "Worker";
 
 	while (true) {
 
@@ -121,7 +119,7 @@ void TaskQueue::GetPacketData() {
 /* Listening Task Queue */
 void TaskQueue::ListeningTaskQueue() {
 	
-	string msg = "Boss";
+	std::string msg = "Boss";
 
 	while (true) {
 
@@ -129,7 +127,7 @@ void TaskQueue::ListeningTaskQueue() {
 
 		/* if the SIGINT event occurs, the Boss wake up all threads */
 		if (sig_int) {
-			cout << msg << ": Listening Queue is stopped..." << endl;
+			std::cout << msg << ": Listening Queue is stopped..." << std::endl;
 			pthread_cond_broadcast(&cond);
 
 			Unlock(msg);
@@ -137,7 +135,7 @@ void TaskQueue::ListeningTaskQueue() {
 		}
 
 		if (task_queue.empty()) {
-			cout << "Task Queue is Empty..." << endl;
+			std::cout << "Task Queue is Empty..." << std::endl;
 			sleep(1);
 
 			Unlock(msg);
@@ -152,52 +150,52 @@ void TaskQueue::ListeningTaskQueue() {
 }
 
 /* Lock */
-void TaskQueue::Lock(string msg) {
+void TaskQueue::Lock(std::string msg) {
 	
 	int is_lock = pthread_mutex_lock(&mutex);
 	
 	if (is_lock != 0) {
-		cout << msg << ": Lock Failed" << endl;
+		std::cout << msg << ": Lock Failed" << std::endl;
 		return;
 	}
-	cout << msg << ": Lock Success" << endl;
+	std::cout << msg << ": Lock Success" << std::endl;
 }
 
 /* Unlock */
-void TaskQueue::Unlock(string msg) {
+void TaskQueue::Unlock(std::string msg) {
 
 	int is_unlock = pthread_mutex_unlock(&mutex);
 	
 	if (is_unlock != 0) {
-		cout << msg << ": Unlock Failed\n" << endl;
+		std::cout << msg << ": Unlock Failed\n" << std::endl;
 		return;
 	}
-	cout << msg << ": Unlock Success\n" << endl;
+	std::cout << msg << ": Unlock Success\n" << std::endl;
 }
 
 /* Wait */
-void TaskQueue::Wait(string msg) {
+void TaskQueue::Wait(std::string msg) {
 
-	cout << msg << ": Wait For Signal...\n" << endl;	
+	std::cout << msg << ": Wait For Signal...\n" << std::endl;
 	int is_wait = pthread_cond_wait(&cond, &mutex);
 
 	if (is_wait != 0) {
-		cout << msg << ": Wait Failed" << endl;
+		std::cout << msg << ": Wait Failed" << std::endl;
 		return;
 	}
-	cout << msg << ": Receive Signal & Lock Success" << endl;	
+	std::cout << msg << ": Receive Signal & Lock Success" << std::endl;
 }
 
 /* Signal */
-void TaskQueue::Signal(string msg) {
+void TaskQueue::Signal(std::string msg) {
 	
 	int is_signal = pthread_cond_signal(&cond);
 
 	if (is_signal != 0) {
-		cout << msg << ": Signal Failed" << endl;
+		std::cout << msg << ": Signal Failed" << std::endl;
 		return;
 	}
-	cout << msg << ": Send Signal" << endl;
+	std::cout << msg << ": Send Signal" << std::endl;
 }
 
 /*********************************************************************
@@ -231,7 +229,7 @@ void ThreadPool::Create(TaskQueue* taskQueue) {
 
 	for (int i = 0; i < worker_threads.size(); i++) {
 		if (pthread_create(worker_threads[i], NULL, TaskQueue::StartThread, (void*)taskQueue) != 0) {
-			cout << "pthread_create error..." << endl;
+			std::cout << "pthread_create error..." << std::endl;
 			exit(0);
 		}
 		sleep(1);
@@ -243,7 +241,7 @@ void ThreadPool::Join() {
 	
 	for (int i = 0; i < worker_threads.size(); i++) {
 		if (pthread_join(*worker_threads[i], NULL) != 0) {
-			cout << "pthread_join error..." << endl;
+			std::cout << "pthread_join error..." << std::endl;
 			exit(0);
 		}
 	}
@@ -261,7 +259,7 @@ int CheckArgs(int args, char** argv) {
 			return 0;
 		}
 	}
-	cout << "\nusage: ./pool [queue size] [thread count] // MAX_QUEUE_SIZE == 20, MAX_POOL_SIZE == 10\n" << endl;
+	std::cout << "\nusage: ./pool [Queue Size] [Thread Count] // MAX_QUEUE_SIZE == 20, MAX_POOL_SIZE == 10\n" << std::endl;
 	return -1;
 }
 
