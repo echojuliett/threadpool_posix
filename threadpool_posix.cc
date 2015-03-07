@@ -47,11 +47,11 @@ class ThreadPool
 		std::vector<pthread_t*> worker_threads;
 };
 
-bool sig_int = false; // SIGINT FLAG
+bool SIGINT_FLAG = false;
 
 /* SIGINT Handler */
 void SignalHandler(int sig_value) {
-	sig_int = true;
+	SIGINT_FLAG = true;
 }
 
 /*********************************************************************
@@ -105,7 +105,7 @@ void TaskQueue::GetPacketData() {
 		Wait(msg);
 
 		/* if the SIGINT event occurs, all worker threads exit the loop */
-		if (sig_int) {
+		if (SIGINT_FLAG) {
 			Unlock(msg);
 			break;
 		}
@@ -121,12 +121,14 @@ void TaskQueue::ListeningTaskQueue() {
 	
 	std::string msg = "Boss";
 
+	signal(SIGINT, SignalHandler);
+
 	while (true) {
 
 		Lock(msg);
 
 		/* if the SIGINT event occurs, the Boss wake up all threads */
-		if (sig_int) {
+		if (SIGINT_FLAG) {
 			std::cout << msg << ": Listening Queue is stopped..." << std::endl;
 			pthread_cond_broadcast(&cond);
 
@@ -200,7 +202,7 @@ void TaskQueue::Signal(std::string msg) {
 
 /*********************************************************************
  *                                                                   *
- *                      Thread Pool Functions                        *
+ *                       Thread Pool Functions                       *
  *                                                                   *
  *********************************************************************/
 
@@ -274,7 +276,6 @@ int main(int args, char** argv) {
 
 	threadPool->Create(taskQueue);
 
-	signal(SIGINT, SignalHandler);
 	taskQueue->ListeningTaskQueue();
 
 	threadPool->Join();
