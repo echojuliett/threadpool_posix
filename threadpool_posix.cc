@@ -23,8 +23,8 @@ class TaskQueue
 		TaskQueue(int queue_size);
 		~TaskQueue();
 		void PopTask();
-		static void* StartThread(void* object); // use in thread
-		void GetPacketData(); // use in StartThread function
+		static void* StartThread(void* object); // function executed by worker threads
+		void GetPacketData(); // function called by StartThread function
 		void ListeningTaskQueue();
 		void Lock(std::string msg);
 		void Unlock(std::string msg);
@@ -143,8 +143,8 @@ void TaskQueue::ListeningTaskQueue() {
 			Unlock(msg);
 			continue;
 		}
-
-		Signal(msg); // task queue is not empty
+		
+		Signal(msg); // Task Queue is Not Empty
 
 		Unlock(msg);
 		sleep(1);
